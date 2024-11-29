@@ -1,6 +1,4 @@
-Aquí tienes un reporte completo para el README que puedes agregar a tu proyecto, detallando cómo manejar las alarmas exactas y su integración en una aplicación para Android:
 
----
 
 # **Blocknotas - Manejo de Alarmas Exactas**
 
