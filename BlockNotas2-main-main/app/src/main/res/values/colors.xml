@@ -1,0 +1,13 @@
+<resources>
+    <!-- Colores claros -->
+    <color name="LightPrimary">#FF6200EE</color>
+    <color name="LightOnPrimary">#FFFFFF</color>
+    <color name="LightBackground">#FFFFFF</color>
+    <color name="LightOnBackground">#000000</color>
+
+    <!-- Colores oscuros -->
+    <color name="DarkPrimary">#BB86FC</color>
+    <color name="DarkOnPrimary">#EDE7E7</color>
+    <color name="DarkBackground">#F0E1E1</color>
+    <color name="DarkOnBackground">#FFFFFF</color>
+</resources>
