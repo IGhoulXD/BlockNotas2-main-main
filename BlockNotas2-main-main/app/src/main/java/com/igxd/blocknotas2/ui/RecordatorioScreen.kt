@@ -55,4 +55,27 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
                 Text("Contenido: ${recordatorio.contenido}", style = MaterialTheme.typography.body1)
                 Text("Fecha y Hora: ${Date(recordatorio.fechaHora)}", style = MaterialTheme.typography.body2)
 
+// Botón de Editar
+                Button(onClick = {
+                    editingRecordatorio = recordatorio
+                    titulo = recordatorio.titulo
+                    contenido = recordatorio.contenido
+                    fechaHora = recordatorio.fechaHora
+                }) {
+                    Text("Editar")
+                }
 
+                // Botón de eliminar
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = {
+                    coroutineScope.launch {
+                        // Llamamos a eliminar dentro de un coroutine
+                        recordatorioRepository.eliminar(recordatorio)
+                        recordatorios = recordatorioRepository.obtenerTodos()
+                    }
+                }) {
+                    Text("Eliminar")
+                }
+            }
+        }
+    }
