@@ -130,3 +130,18 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
         }
     }
 }
+
+// Función para programar el recordatorio
+@SuppressLint("ScheduleExactAlarm")
+fun scheduleReminder(context: Context, recordatorio: Recordatorio) {
+    val intent = Intent(context, ReminderBroadcastReceiver::class.java)
+    intent.putExtra("mensaje", recordatorio.titulo)  // O puedes usar otro campo para la notificación
+    val pendingIntent = PendingIntent.getBroadcast(
+        context, recordatorio.id, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    alarmManager.setExactAndAllowWhileIdle(
+        AlarmManager.RTC_WAKEUP, recordatorio.fechaHora, pendingIntent
+    )
+}
