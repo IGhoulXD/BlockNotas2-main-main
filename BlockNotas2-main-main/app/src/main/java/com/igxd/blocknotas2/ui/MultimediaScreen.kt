@@ -66,7 +66,6 @@ fun MultimediaScreen(navController: NavController, themeViewModel: ThemeViewMode
     var audioPath by remember { mutableStateOf<String?>(null) }
 
     // Lanzadores para capturar fotos y videos
-    // Se agrego foto y videos
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
