@@ -79,3 +79,54 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
             }
         }
     }
+
+    // Formulario de agregar/editar recordatorio
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        TextField(
+            value = titulo,
+            onValueChange = { titulo = it },
+            label = { Text("Título del recordatorio") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = contenido,
+            onValueChange = { contenido = it },
+            label = { Text("Contenido del recordatorio") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = fechaHora?.toString() ?: "",
+            onValueChange = { fechaHora = it.toLongOrNull() },
+            label = { Text("Fecha y Hora (en milisegundos)") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = {
+            val recordatorio = Recordatorio(
+                id = editingRecordatorio?.id ?: 0, // Si está editando, usa el ID de la nota
+                titulo = titulo,
+                contenido = contenido,
+                fechaHora = fechaHora ?: System.currentTimeMillis() // Usa la hora actual si no se da un tiempo
+            )
+            coroutineScope.launch {
+                if (editingRecordatorio == null) {
+                    recordatorioRepository.insertar(recordatorio)
+                } else {
+                    recordatorioRepository.actualizar(recordatorio)
+                }
+                recordatorios = recordatorioRepository.obtenerTodos()
+            }
+            titulo = ""
+            contenido = ""
+            fechaHora = null
+            editingRecordatorio = null
+            scheduleReminder(context, recordatorio) // Programar la alarma
+        }) {
+            Text(if (editingRecordatorio == null) "Agregar Recordatorio" else "Actualizar Recordatorio")
+        }
+    }
+}
