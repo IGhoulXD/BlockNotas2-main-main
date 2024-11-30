@@ -33,6 +33,7 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
     var fechaHora by remember { mutableStateOf<Long?>(null) }
     var editingRecordatorio by remember { mutableStateOf<Recordatorio?>(null) }
 
+    
     // Obtener todos los recordatorios desde la base de datos
     LaunchedEffect(Unit) {
         recordatorios = recordatorioRepository.obtenerTodos()
@@ -54,93 +55,4 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
                 Text("Contenido: ${recordatorio.contenido}", style = MaterialTheme.typography.body1)
                 Text("Fecha y Hora: ${Date(recordatorio.fechaHora)}", style = MaterialTheme.typography.body2)
 
-                // Botón de editar
-                Button(onClick = {
-                    editingRecordatorio = recordatorio
-                    titulo = recordatorio.titulo
-                    contenido = recordatorio.contenido
-                    fechaHora = recordatorio.fechaHora
-                }) {
-                    Text("Editar")
-                }
 
-                // Botón de eliminar
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = {
-                    coroutineScope.launch {
-                        // Llamamos a eliminar dentro de un coroutine
-                        recordatorioRepository.eliminar(recordatorio)
-                        recordatorios = recordatorioRepository.obtenerTodos()
-                    }
-                }) {
-                    Text("Eliminar")
-                }
-            }
-        }
-    }
-
-    // Formulario de agregar/editar recordatorio
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        TextField(
-            value = titulo,
-            onValueChange = { titulo = it },
-            label = { Text("Título del recordatorio") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = contenido,
-            onValueChange = { contenido = it },
-            label = { Text("Contenido del recordatorio") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = fechaHora?.toString() ?: "",
-            onValueChange = { fechaHora = it.toLongOrNull() },
-            label = { Text("Fecha y Hora (en milisegundos)") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(onClick = {
-            val recordatorio = Recordatorio(
-                id = editingRecordatorio?.id ?: 0, // Si está editando, usa el ID de la nota
-                titulo = titulo,
-                contenido = contenido,
-                fechaHora = fechaHora ?: System.currentTimeMillis() // Usa la hora actual si no se da un tiempo
-            )
-            coroutineScope.launch {
-                if (editingRecordatorio == null) {
-                    recordatorioRepository.insertar(recordatorio)
-                } else {
-                    recordatorioRepository.actualizar(recordatorio)
-                }
-                recordatorios = recordatorioRepository.obtenerTodos()
-            }
-            titulo = ""
-            contenido = ""
-            fechaHora = null
-            editingRecordatorio = null
-            scheduleReminder(context, recordatorio) // Programar la alarma
-        }) {
-            Text(if (editingRecordatorio == null) "Agregar Recordatorio" else "Actualizar Recordatorio")
-        }
-    }
-}
-
-// Función para programar el recordatorio
-@SuppressLint("ScheduleExactAlarm")
-fun scheduleReminder(context: Context, recordatorio: Recordatorio) {
-    val intent = Intent(context, ReminderBroadcastReceiver::class.java)
-    intent.putExtra("mensaje", recordatorio.titulo)  // O puedes usar otro campo para la notificación
-    val pendingIntent = PendingIntent.getBroadcast(
-        context, recordatorio.id, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    alarmManager.setExactAndAllowWhileIdle(
-        AlarmManager.RTC_WAKEUP, recordatorio.fechaHora, pendingIntent
-    )
-}
