@@ -22,6 +22,10 @@ class MultimediaViewModel : ViewModel() {
 
 // Clase sellada que representa los diferentes tipos de elementos multimedia
 sealed class MultimediaItem {
+
+
+
+
     // Para las imágenes, almacenamos un archivo
     data class Image(val file: File) : MultimediaItem()
 

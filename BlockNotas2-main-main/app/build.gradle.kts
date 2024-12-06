@@ -47,6 +47,8 @@ android {
 }
 
 dependencies {
+
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -75,6 +77,9 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.5.0")
     implementation("io.coil-kt:coil-compose:2.2.2")
 
+    implementation ("com.google.android.exoplayer:exoplayer:2.18.2")
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.games.activity)
     // Dependencias de prueba
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -41,17 +41,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.igxd.blocknotas2.viewmodel.MultimediaItem
 import com.igxd.blocknotas2.viewmodel.MultimediaViewModel
 import com.igxd.blocknotas2.viewmodel.ThemeViewModel
-import saveImageToDCIM
-import java.io.File
-import java.io.FileOutputStream
 
-// Definicion de colores
+
 val LightBackground = Color(0xFFF5F5F5)
 val DarkBackground = Color(0xFF121212)
 val LightOnPrimary = Color.Black
 val DarkOnPrimary = Color.White
 
-//Declaracion de funcion y contexto
 @Composable
 fun MultimediaScreen(navController: NavController, themeViewModel: ThemeViewModel) {
 

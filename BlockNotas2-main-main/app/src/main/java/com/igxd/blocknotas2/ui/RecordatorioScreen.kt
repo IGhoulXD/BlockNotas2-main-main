@@ -1,42 +1,74 @@
 package com.igxd.blocknotas2.ui
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.app.PendingIntent
-import android.app.AlarmManager
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.widget.DatePicker
+import android.widget.TimePicker
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.igxd.blocknotas2.ReminderBroadcastReceiver
+import androidx.navigation.NavController
 import com.igxd.blocknotas2.data.models.Recordatorio
 import com.igxd.blocknotas2.repository.RecordatorioRepository
+import com.igxd.blocknotas2.viewmodel.ThemeViewModel
 import kotlinx.coroutines.launch
 import java.util.*
 
 @Composable
-fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
+fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository, navController: NavController
+                       , themeViewModel: ThemeViewModel
+) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope() // Usamos un CoroutineScope para operaciones suspendidas
+    val coroutineScope = rememberCoroutineScope()
     var recordatorios by remember { mutableStateOf(listOf<Recordatorio>()) }
     var titulo by remember { mutableStateOf("") }
     var contenido by remember { mutableStateOf("") }
     var fechaHora by remember { mutableStateOf<Long?>(null) }
     var editingRecordatorio by remember { mutableStateOf<Recordatorio?>(null) }
+    val calendar = Calendar.getInstance()
 
-    
     // Obtener todos los recordatorios desde la base de datos
     LaunchedEffect(Unit) {
         recordatorios = recordatorioRepository.obtenerTodos()
+    }
+
+    // Función para abrir el TimePicker
+    fun showTimePicker() {
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        TimePickerDialog(
+            context,
+            { _: TimePicker, selectedHour: Int, selectedMinute: Int ->
+                calendar.set(Calendar.HOUR_OF_DAY, selectedHour)
+                calendar.set(Calendar.MINUTE, selectedMinute)
+                fechaHora = calendar.timeInMillis
+            },
+            hour, minute, true
+        ).show()
+    }
+
+    // Función para abrir el DatePicker
+    fun showDatePicker() {
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        DatePickerDialog(
+            context,
+            { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDayOfMonth: Int ->
+                calendar.set(Calendar.YEAR, selectedYear)
+                calendar.set(Calendar.MONTH, selectedMonth)
+                calendar.set(Calendar.DAY_OF_MONTH, selectedDayOfMonth)
+                showTimePicker()  // Llamar a TimePicker después de seleccionar la fecha
+            },
+            year, month, day
+        ).show()
     }
 
     // Interfaz de usuario para mostrar los recordatorios
@@ -55,7 +87,7 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
                 Text("Contenido: ${recordatorio.contenido}", style = MaterialTheme.typography.body1)
                 Text("Fecha y Hora: ${Date(recordatorio.fechaHora)}", style = MaterialTheme.typography.body2)
 
-// Botón de Editar
+                // Botón de editar
                 Button(onClick = {
                     editingRecordatorio = recordatorio
                     titulo = recordatorio.titulo
@@ -69,7 +101,6 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
                     coroutineScope.launch {
-                        // Llamamos a eliminar dentro de un coroutine
                         recordatorioRepository.eliminar(recordatorio)
                         recordatorios = recordatorioRepository.obtenerTodos()
                     }
@@ -98,19 +129,28 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
             label = { Text("Contenido del recordatorio") }
         )
         Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = fechaHora?.toString() ?: "",
-            onValueChange = { fechaHora = it.toLongOrNull() },
-            label = { Text("Fecha y Hora (en milisegundos)") }
-        )
+
+        // Mostrar la fecha y hora seleccionadas
+        Text("Fecha y Hora: ${fechaHora?.let { Date(it) }}")
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Botón para seleccionar fecha y hora
+        Button(onClick = {
+            showDatePicker()
+        }) {
+            Text("Seleccionar Fecha y Hora")
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(onClick = {
             val recordatorio = Recordatorio(
-                id = editingRecordatorio?.id ?: 0, // Si está editando, usa el ID de la nota
+                id = editingRecordatorio?.id ?: 0,
                 titulo = titulo,
                 contenido = contenido,
-                fechaHora = fechaHora ?: System.currentTimeMillis() // Usa la hora actual si no se da un tiempo
+                fechaHora = fechaHora ?: System.currentTimeMillis(),
+                mensaje = ""
             )
             coroutineScope.launch {
                 if (editingRecordatorio == null) {
@@ -124,24 +164,8 @@ fun RecordatorioScreen(recordatorioRepository: RecordatorioRepository) {
             contenido = ""
             fechaHora = null
             editingRecordatorio = null
-            scheduleReminder(context, recordatorio) // Programar la alarma
         }) {
             Text(if (editingRecordatorio == null) "Agregar Recordatorio" else "Actualizar Recordatorio")
         }
     }
-}
-
-// Función para programar el recordatorio
-@SuppressLint("ScheduleExactAlarm")
-fun scheduleReminder(context: Context, recordatorio: Recordatorio) {
-    val intent = Intent(context, ReminderBroadcastReceiver::class.java)
-    intent.putExtra("mensaje", recordatorio.titulo)  // O puedes usar otro campo para la notificación
-    val pendingIntent = PendingIntent.getBroadcast(
-        context, recordatorio.id, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    alarmManager.setExactAndAllowWhileIdle(
-        AlarmManager.RTC_WAKEUP, recordatorio.fechaHora, pendingIntent
-    )
 }

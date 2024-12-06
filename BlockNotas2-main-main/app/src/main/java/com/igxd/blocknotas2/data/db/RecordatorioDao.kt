@@ -24,4 +24,8 @@ interface RecordatorioDao {
 
     @Query("SELECT * FROM recordatorios WHERE id = :id")
     suspend fun obtenerPorId(id: Int): Recordatorio?
+
+    @Query("SELECT * FROM recordatorios WHERE id = :notaId")
+    suspend fun getRecordatoriosDeNota(notaId: Long): List<Recordatorio>
+    abstract fun obtenerRecordatoriosDeNota(notaId: Long): List<Recordatorio>
 }

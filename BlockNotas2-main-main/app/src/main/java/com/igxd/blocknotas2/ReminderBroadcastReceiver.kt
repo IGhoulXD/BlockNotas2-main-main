@@ -17,7 +17,9 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        // Crear el canal de notificación (requiere para versiones Android 8 y superiores)
+        val titulo = intent.getStringExtra("titulo") ?: "¡Recordatorio!"
+        val contenido = intent.getStringExtra("contenido") ?: "Es hora de revisar tu nota."
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
@@ -30,16 +32,15 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Crear la notificación
         val notification: Notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification) // Asegúrate de tener un ícono de notificación
-            .setContentTitle("¡Recordatorio!")
-            .setContentText("Es hora de revisar tu nota.")
+            .setSmallIcon(R.drawable.ic_notification) // Asegúrate de tener un ícono válido
+            .setContentTitle(titulo)
+            .setContentText(contenido)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        // Enviar la notificación
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(0, notification)
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 }
